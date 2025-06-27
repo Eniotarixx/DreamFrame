@@ -1,0 +1,10 @@
+torch>=2.0.0
+opencv-python
+Pillow
+numpy
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git
+ultralytics
+diffusers
+transformers
+accelerate
+requests
