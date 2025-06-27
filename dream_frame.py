@@ -167,8 +167,8 @@ def main():
     # 4. PNG transparent
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     rgba = np.dstack([frame_rgb, combined_mask.astype(np.uint8) * 255])
-    Image.fromarray(rgba).save(os.path.join(output_dir, "final_output.png"))
-    print(f"[INFO] Transparent PNG saved as {os.path.join(output_dir, 'final_output.png')}")
+    Image.fromarray(rgba).save(os.path.join(output_dir, "mask.png"))
+    print(f"[INFO] Transparent PNG saved as {os.path.join(output_dir, 'mask.png')}")
 
     # 5. Inpainting
     original_image = Image.fromarray(frame_rgb)
