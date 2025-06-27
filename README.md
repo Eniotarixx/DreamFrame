@@ -19,7 +19,7 @@ Everything runs locally—no need to upload your images to an external server.
 
 1. **Clone the repository and move into the folder:**
    ```bash
-   git clone <repo_url>
+   git clone https://github.com/Eniotarixx/DreamFrame
    cd DreamFrame
    ```
 
@@ -31,7 +31,7 @@ Everything runs locally—no need to upload your images to an external server.
 3. **(Optional) Create a virtual environment:**
    ```bash
    python -m venv dream_frame_env
-   source dream_frame_env/bin/activate  # or .\dream_frame_env\Scripts\activate on Windows
+   source dream_frame_env/bin/activate
    ```
 
 ---
