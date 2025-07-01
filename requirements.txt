@@ -8,3 +8,8 @@ diffusers
 transformers
 accelerate
 requests
+
+fastapi
+uvicorn[standard]
+ultralytics
+# autres dépendances
