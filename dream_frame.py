@@ -139,18 +139,18 @@ def inpaint_background(original_image, mask, prompt, model_path, output_dir):
     print(f"[INFO] Final image saved as {output_path}.")
     out_image.show()
     print("[INFO] Processing complete!")
+    out_image.save(output_path)
 
-def main():
+def generate_image(prompt, output_path):
     # Paths
     grand_parent_dir = os.path.dirname(os.getcwd())
     model_path = os.path.join(grand_parent_dir, "model")
     output_dir = os.path.join(os.getcwd(), "output")
-    os.makedirs(output_dir, exist_ok=True)
-    prompt = input("Enter the prompt for the new background: ")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     print(f"[INFO] Using prompt: {prompt}")
 
     # 1. Capture 
-    frame = capture_square_image(target_size=512, out_path=os.path.join(output_dir, "opencv_frame.png"))
+    frame = capture_square_image(target_size=512, out_path=os.path.join(output_path, "opencv_frame.png"))
     if frame is None:
         return
 
@@ -167,14 +167,11 @@ def main():
     # 4. PNG transparent
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     rgba = np.dstack([frame_rgb, combined_mask.astype(np.uint8) * 255])
-    Image.fromarray(rgba).save(os.path.join(output_dir, "mask.png"))
-    print(f"[INFO] Transparent PNG saved as {os.path.join(output_dir, 'mask.png')}")
+    Image.fromarray(rgba).save(os.path.join(output_path, "mask.png"))
+    print(f"[INFO] Transparent PNG saved as {os.path.join(output_path, 'mask.png')}")
 
     # 5. Inpainting
     original_image = Image.fromarray(frame_rgb)
-    inpaint_background(original_image, combined_mask, prompt, model_path, output_dir)
+    inpaint_background(original_image, combined_mask, prompt, model_path, output_path)
 
     print("[INFO] Processing complete!")
-
-if __name__ == "__main__":
-    main()
