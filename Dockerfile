@@ -1,6 +1,14 @@
 # Base image  
 FROM python:3.13.5-bookworm
 
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+
+
 # Work directory 
 WORKDIR /app
 
@@ -10,9 +18,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Tthe '.' is a reference to the WORKDIR
-COPY app.py .
+COPY dream_frame.py .
 
 
 
 # Command to execute when the container is lauch 
-CMD ["python", "app.py"]
+CMD ["python", "dream_frame.py"]
