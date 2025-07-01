@@ -4,8 +4,9 @@
     </head>
     <body>
         <h1>Enter your prompt</h1>
-        <form action='/generate' method='post'>
+        <form action='/generate' method='post' enctype='multipart/form-data'>
             <input type='text' name='prompt' placeholder='Type your prompt here' required style='width:300px;'>
+            <input type='file' name='image' accept='image/*'>
             <button type='submit'>Generate</button>
         </form>
     </body>

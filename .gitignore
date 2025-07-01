@@ -4,3 +4,4 @@ model/*.pth
 *pt
 output/*png
 output/*jpeg
+--__pycache__
