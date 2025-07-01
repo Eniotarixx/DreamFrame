@@ -4,9 +4,12 @@ from dream_frame import generate_image  # my script to adapte
 import uuid # use to create a unique filename
 import os # use to create a directory
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 
 
 app = FastAPI() # create an instance of the FastAPI class
+templates = Jinja2Templates(directory="templates")
 
 class PromptRequest(BaseModel): # endpoint Generate want to receive a prompt
     prompt: str
@@ -24,18 +27,5 @@ def generate(prompt_request: PromptRequest): # receive the prompt
     return {"message": "Image generated", "file": filename} # return the filename
 
 @app.get("/", response_class=HTMLResponse)
-def read_root():
-    return """
-    <html>
-        <head>
-            <title>DreamFrame Prompt</title>
-        </head>
-        <body>
-            <h1>Enter your prompt</h1>
-            <form action='/generate' method='post'>
-                <input type='text' name='prompt' placeholder='Type your prompt here' required style='width:300px;'>
-                <button type='submit'>Generate</button>
-            </form>
-        </body>
-    </html>
-    """
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
