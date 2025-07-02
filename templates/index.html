@@ -9,5 +9,10 @@
             <input type='file' name='image' accept='image/*'>
             <button type='submit'>Generate</button>
         </form>
+
+        {% if file %}
+            <h2>Generated Image:</h2>
+            <img src="/outputs/{{ file }}" alt="Generated Image" style="max-width:512px;">
+        {% endif %}
     </body>
 </html> 

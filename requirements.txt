@@ -12,4 +12,6 @@ requests
 fastapi
 uvicorn[standard]
 ultralytics
-# autres dépendances
+
+
+ python-multipart

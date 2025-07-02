@@ -8,7 +8,6 @@ from ultralytics import YOLO
 from diffusers import StableDiffusionInpaintPipeline
 import requests
 
-
 def download_if_missing(url, dest_path):
     if not os.path.exists(dest_path):
         print(f"[INFO] Downloading {os.path.basename(dest_path)}...")
@@ -20,46 +19,6 @@ def download_if_missing(url, dest_path):
         print(f"[INFO] Downloaded to {dest_path}")
     else:
         print(f"[INFO] {os.path.basename(dest_path)} already exists.")
-
-#*************************************************************************************
-# Capture a centered square image from webcam and save as 512x512
-#*************************************************************************************
-
-def capture_square_image(target_size=512, cam_id=1, out_path="opencv_frame.png"):
-    print("[INFO] Starting webcam capture...")
-    cam = cv2.VideoCapture(cam_id)
-    cv2.namedWindow("Square Capture", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Square Capture", target_size, target_size)
-    frame_square = None
-
-    while True:
-        ret, frame = cam.read()
-        if not ret:
-            print("[ERROR] Failed to grab frame from webcam.")
-            break
-
-        h, w, _ = frame.shape
-        side = min(h, w)
-        start_x = (w - side) // 2
-        start_y = (h - side) // 2
-        frame_square = frame[start_y:start_y+side, start_x:start_x+side]
-        frame_square = cv2.resize(frame_square, (target_size, target_size), interpolation=cv2.INTER_LANCZOS4)
-
-        cv2.imshow("Square Capture", frame_square)
-
-        k = cv2.waitKey(1)
-        if k%256 == 27:
-            print("[INFO] ESC pressed, closing webcam window...")
-            frame_square = None
-            break
-        elif k%256 == 32:
-            cv2.imwrite(out_path, frame_square)
-            print(f"[INFO] Image captured and saved as {out_path}!")
-            break
-
-    cam.release()
-    cv2.destroyAllWindows()
-    return frame_square
 
 #*************************************************************************************
 # Use YOLOv8 to detect the person
@@ -119,10 +78,10 @@ def inpaint_background(original_image, mask, prompt, model_path, output_dir):
     # Charger le pipeline d'inpainting
     inpaint_pipe = StableDiffusionInpaintPipeline.from_pretrained(
         "CompVis/stable-diffusion-v1-4",
-        torch_dtype=torch.float16,
+        #torch_dtype=torch.float16, #commented to make it work on cpu
         safety_checker=None,
         cache_dir=model_path
-    ).to("mps")
+    ).to("cpu")
     # Générer l'image avec le nouveau fond
     with torch.no_grad():
         out_image = inpaint_pipe(
@@ -130,7 +89,7 @@ def inpaint_background(original_image, mask, prompt, model_path, output_dir):
             image=original_image,
             mask_image=mask_pil,
             strength=0.9,
-            generator=torch.Generator("mps").manual_seed(7)
+            generator=torch.Generator("cpu").manual_seed(7)
         ).images[0]
 
     # Sauvegarder et afficher le résultat
@@ -141,19 +100,18 @@ def inpaint_background(original_image, mask, prompt, model_path, output_dir):
     print("[INFO] Processing complete!")
     out_image.save(output_path)
 
-def generate_image(prompt, output_path):
+def generate_image(prompt, output_path, input_image_path):
     # Paths
     grand_parent_dir = os.path.dirname(os.getcwd())
     model_path = os.path.join(grand_parent_dir, "model")
     output_dir = os.path.join(os.getcwd(), "output")
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     print(f"[INFO] Using prompt: {prompt}")
-
-    # 1. Capture 
-    frame = capture_square_image(target_size=512, out_path=os.path.join(output_path, "opencv_frame.png"))
-    if frame is None:
-        return
-
+    
+    # Load and resize the uploaded image
+    frame = cv2.imread(input_image_path)
+    frame = cv2.resize(frame, (512, 512), interpolation=cv2.INTER_LANCZOS4)
+    
     # 2. YOLO
     person_box = detect_person_yolo(frame)
 
@@ -167,11 +125,12 @@ def generate_image(prompt, output_path):
     # 4. PNG transparent
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     rgba = np.dstack([frame_rgb, combined_mask.astype(np.uint8) * 255])
-    Image.fromarray(rgba).save(os.path.join(output_path, "mask.png"))
-    print(f"[INFO] Transparent PNG saved as {os.path.join(output_path, 'mask.png')}")
+    output_dir = os.path.dirname(output_path)
+    Image.fromarray(rgba).save(os.path.join(output_dir, "mask.png"))
+    print(f"[INFO] Transparent PNG saved as {os.path.join(output_dir, 'mask.png')}")
 
     # 5. Inpainting
     original_image = Image.fromarray(frame_rgb)
-    inpaint_background(original_image, combined_mask, prompt, model_path, output_path)
+    inpaint_background(original_image, combined_mask, prompt, model_path, output_dir)
 
     print("[INFO] Processing complete!")
