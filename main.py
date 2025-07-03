@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI() # create an instance of the FastAPI class
 templates = Jinja2Templates(directory="templates")
 app.mount("/outputs", StaticFiles(directory="/app/outputs"), name="outputs")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class PromptRequest(BaseModel): # endpoint Generate want to receive a prompt
     prompt: str
